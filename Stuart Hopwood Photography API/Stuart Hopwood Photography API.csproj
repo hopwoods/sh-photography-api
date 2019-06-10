@@ -15,4 +15,10 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.7.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="JetBrains.Annotations">
+      <HintPath>..\..\..\..\AppData\Local\JetBrains\Installations\ReSharperPlatformVs16_e44bce24\Annotations\net20\JetBrains.Annotations.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

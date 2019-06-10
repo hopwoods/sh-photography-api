@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Stuart_Hopwood_Photography_API.Data;
 using Stuart_Hopwood_Photography_API.Entities;
 using Stuart_Hopwood_Photography_API.Helpers;
@@ -19,9 +20,9 @@ namespace Stuart_Hopwood_Photography_API.Services
 
     public class UserService : IUserService
     {
-        private readonly DataContext _context;
+        private readonly ApplicationContext _context;
 
-        public UserService(DataContext context)
+        public UserService(ApplicationContext context)
         {
             _context = context;
         }
