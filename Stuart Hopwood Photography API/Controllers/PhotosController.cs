@@ -1,18 +1,13 @@
-﻿using Google.Apis.Auth.OAuth2;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
-using Stuart_Hopwood_Photography_API.Data;
 using Stuart_Hopwood_Photography_API.Entities;
+using Stuart_Hopwood_Photography_API.Helpers;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 
 namespace Stuart_Hopwood_Photography_API.Controllers
 {
@@ -20,24 +15,16 @@ namespace Stuart_Hopwood_Photography_API.Controllers
    [ApiController]
    public class PhotosController : ControllerBase
    {
-      private readonly ApplicationContext _context;
+      private readonly HttpClient _client = new HttpClient();
+      private readonly IOAuthHelper _oAuthHelper;
 
-      public PhotosController(IConfiguration configuration, ApplicationContext context)
+      public PhotosController(IConfiguration configuration, IOAuthHelper oAuthHelper)
       {
          Configuration = configuration;
-         _context = context;
+         _oAuthHelper = oAuthHelper;
       }
 
-      private IConfiguration Configuration { get; set; }
-      private static readonly HttpClient Client = new HttpClient();
-
-      [AllowAnonymous]
-      [HttpGet("hello")]
-      public IActionResult Hello()
-      {
-
-         return Content("hello world");
-      }
+      private IConfiguration Configuration { get; }
 
       [AllowAnonymous]
       [HttpGet("GetAlbumPhotos")]
@@ -47,43 +34,34 @@ namespace Stuart_Hopwood_Photography_API.Controllers
          {
             return BadRequest(new {message = "You must provide an album id."});
          }
-            
 
-         UserCredential credential;
-         string[] scopes =
-         {
-            "https://www.googleapis.com/auth/photoslibrary.readonly"
-         };
-
-         const string clientApiSecret =
-            "{\"installed\":{\"client_id\":\"908335520577-6avd0rlkkico8eoe4t2kasp7r8ede9bq.apps.googleusercontent.com\",\"project_id\":\"sh-photography-1560067890037\",\"auth_uri\":\"https://accounts.google.com/o/oauth2/auth\",\"token_uri\":\"https://oauth2.googleapis.com/token\",\"auth_provider_x509_cert_url\":\"https://www.googleapis.com/oauth2/v1/certs\",\"client_secret\":\"6Q2ODMCe0deI45yJ7UPMcBNg\",\"redirect_uris\":[\"urn:ietf:wg:oauth:2.0:oob\",\"http://localhost\"]}}";
-         // convert string to stream
-         var byteArray = Encoding.ASCII.GetBytes(clientApiSecret);
-         var stream = new MemoryStream(byteArray); 
-         
-         
-         var userName = Configuration["GoogleAPI:username"];
-         var clientId = Configuration["GoogleAPI:client_id"];
-         var clientSecret = Configuration["GoogleAPI:client_secret"];
          var galleryPhotos = new GalleryPhotos
          {
             Photos = new List<Photo>()
          };
 
-         credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
-            GoogleClientSecrets.Load(stream).Secrets,
-               scopes,
-               userName,
-               CancellationToken.None,
-               new DbDataStore(_context)
-         ).Result;
-         
+         // Get Authorisation Token from Google
+         // Get previously stored one if present, or get and store new one if not.
+         var credentials = _oAuthHelper.GetUserCredentials();
 
+         // Check if the token has expired and request a new one using the refresh token
+         if (credentials.Token.IsExpired(credentials.Flow.Clock))
+         {
+            var success = await _oAuthHelper.RefreshToken(credentials);
+            if (success)
+            {
+               // Update credentials from store
+               credentials = _oAuthHelper.GetUserCredentials();
+            }
+         }
+
+         // Get The Photos
          try
          {
             var requestData = new Dictionary<string, string>
             {
-               {"albumId", albumId}
+               {"albumId", albumId},
+               {"pageSize", "100"}
             };
 
             var content = new FormUrlEncodedContent(requestData);
@@ -94,12 +72,12 @@ namespace Stuart_Hopwood_Photography_API.Controllers
             };
 
             request.Headers.Add("ContentType", "application/json");
-            request.Headers.Add("client_id", clientId);
-            request.Headers.Add("client_secret", clientSecret);
-            request.Headers.Add("Authorization", $"{credential.Token.TokenType} {credential.Token.AccessToken}");
+            request.Headers.Add("client_id", Configuration["GoogleAPI:client_id"]);
+            request.Headers.Add("client_secret", Configuration["GoogleAPI:client_secret"]);
+            request.Headers.Add("Authorization", $"{credentials.Token.TokenType} {credentials.Token.AccessToken}");
             request.Content = content;
 
-            using (var response = await Client.SendAsync(request))
+            using (var response = await _client.SendAsync(request))
             {
                var responseJson = await response.Content.ReadAsStringAsync();
                var responseObject = JsonConvert.DeserializeObject<GooglePhotosResponse>(responseJson);
@@ -112,17 +90,15 @@ namespace Stuart_Hopwood_Photography_API.Controllers
                foreach (var item in responseObject.MediaItems)
                {
                   galleryPhotos.Photos.Add(new Photo()
-                  {
-                     Src = item.ProductUrl,
-                     Width = item.MediaMetadata.Width,
-                     Height = item.MediaMetadata.Height
-                  }
+                     {
+                        Src = item.ProductUrl,
+                        Width = item.MediaMetadata.Width,
+                        Height = item.MediaMetadata.Height
+                     }
                   );
                }
             }
-
             return new JsonResult(galleryPhotos);
-
          }
          catch (Exception ex)
          {

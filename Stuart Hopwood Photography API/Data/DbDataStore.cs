@@ -34,6 +34,7 @@ namespace Stuart_Hopwood_Photography_API.Data
             }
 
             var contents = JsonConvert.SerializeObject(value);
+            var credentials = JsonConvert.DeserializeObject<OAuthToken>(contents);
 
             using (var transaction = _context.Database.BeginTransaction())
             {
@@ -46,13 +47,29 @@ namespace Stuart_Hopwood_Photography_API.Data
                         _context.OAuthToken.Add(new OAuthToken
                         {
                             UserKey = key,
-                            Token = contents
+                            //Token = contents,
+                            access_token = credentials.access_token,
+                            expires_in = credentials.expires_in,
+                            id_token = credentials.id_token,
+                            Issued = credentials.Issued,
+                            IssuedUtc = credentials.IssuedUtc,
+                            refresh_token = credentials.refresh_token,
+                            scope = credentials.scope,
+                            token_type = credentials.token_type
                         });
                     }
                     else
                     {
                         dbKey.UserKey = key;
-                        dbKey.Token = contents;
+                        //dbKey.Token = contents;
+                        dbKey.access_token = credentials.access_token;
+                        dbKey.expires_in = credentials.expires_in;
+                        dbKey.id_token = credentials.id_token;
+                        dbKey.Issued = credentials.Issued;
+                        dbKey.IssuedUtc = credentials.IssuedUtc;
+                        dbKey.refresh_token = credentials.refresh_token;
+                        dbKey.scope = credentials.scope;
+                        dbKey.token_type = credentials.token_type;
                     }
 
                     _context.SaveChanges();
@@ -113,11 +130,13 @@ namespace Stuart_Hopwood_Photography_API.Data
             {
                 throw new ArgumentException("Key MUST have a value");
             }
-
+            
             var completionSource = new TaskCompletionSource<T>();
             var dbKey = _context.OAuthToken.FirstOrDefault(k => k.UserKey == key);
 
-            completionSource.SetResult(dbKey == null ? default(T) : JsonConvert.DeserializeObject<T>(dbKey.Token));
+            var token = JsonConvert.SerializeObject(dbKey);
+
+            completionSource.SetResult(dbKey == null ? default(T) : JsonConvert.DeserializeObject<T>(token));
 
             return completionSource.Task;
         }

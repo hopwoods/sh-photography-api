@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Stuart_Hopwood_Photography_API.Entities
 {
@@ -16,5 +12,25 @@ namespace Stuart_Hopwood_Photography_API.Entities
 
         [StringLength(2000)]
         public string Token { get; set; }
+
+        [StringLength(2000)]
+        public string access_token { get; set; }
+
+        [StringLength(255)]
+        public string token_type { get; set; }
+
+        public int expires_in { get; set; }
+
+        [StringLength(1000)]
+        public string refresh_token { get; set; }
+
+        [StringLength(1000)]
+        public string scope { get; set; }
+
+        public string id_token { get; set; }
+
+        public string Issued { get; set; }
+
+        public string IssuedUtc { get; set; }
     }
 }
