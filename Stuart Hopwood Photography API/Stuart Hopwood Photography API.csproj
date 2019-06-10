@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Apis.Auth" Version="1.40.1" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="AutoMapper" Version="8.1.0" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="6.0.0" />

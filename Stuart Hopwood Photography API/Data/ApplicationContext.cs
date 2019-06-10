@@ -10,5 +10,7 @@ namespace Stuart_Hopwood_Photography_API.Data
         public ApplicationContext(DbContextOptions<ApplicationContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
+
+        public DbSet<OAuthToken> OAuthToken { get; set; }
     }
 }

@@ -39,11 +39,9 @@ namespace Stuart_Hopwood_Photography_API.Services
                 return null;
 
             // check if password is correct
-            if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
-                return null;
+            return !VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt) ? null : user;
 
             // authentication successful
-            return user;
         }
 
         public IEnumerable<User> GetAll()
