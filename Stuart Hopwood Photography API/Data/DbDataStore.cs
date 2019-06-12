@@ -17,7 +17,6 @@ namespace Stuart_Hopwood_Photography_API.Data
             _context = context;
         }
 
-
         #region Implementation of IDataStore
 
         /// <summary>

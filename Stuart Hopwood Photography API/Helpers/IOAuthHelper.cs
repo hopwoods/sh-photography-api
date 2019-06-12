@@ -11,6 +11,6 @@ namespace Stuart_Hopwood_Photography_API.Helpers
    {
       UserCredential GetUserCredentials();
 
-      Task<bool> RefreshToken(UserCredential credential);
+      Task<bool> RefreshToken(string refreshToken);
    }
 }
