@@ -1,19 +1,20 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using Stuart_Hopwood_Photography_API.Entities;
 using System;
 using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Stuart_Hopwood_Photography_API.Data
 {
     public class DbTokenDataStore : ITokenDataStore
     {
         private readonly ApplicationContext _context;
+        private readonly ILogger<DbTokenDataStore> _logger;
 
-        public DbTokenDataStore(ApplicationContext context)
+        public DbTokenDataStore(ApplicationContext context, ILogger<DbTokenDataStore> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         #region Implementation of IDataStore
@@ -29,13 +30,17 @@ namespace Stuart_Hopwood_Photography_API.Data
                 throw new ArgumentException("oAuth Token missing.");
             }
 
+            _logger.LogDebug($"Store Token in DB. Token {token}");
             using (var transaction = _context.Database.BeginTransaction())
             {
                 try
                 {
+                    _logger.LogDebug($"Get AuthToken from DB if exists");
                     var dbKey = _context.OAuthToken.FirstOrDefault(k => k.UserKey == token.UserKey);
+                    
                     if (dbKey == null)
                     {
+                        _logger.LogDebug($"AuthToken does not exist, adding to db.");
                         _context.OAuthToken.Add(new OAuthToken
                         {
                             UserKey = token.UserKey,
@@ -50,6 +55,7 @@ namespace Stuart_Hopwood_Photography_API.Data
                     }
                     else
                     {
+                        _logger.LogDebug($"AuthToken does exist, updating db.");
                         dbKey.UserKey = token.UserKey;
                         dbKey.access_token = token.access_token;
                         dbKey.expires_in = token.expires_in;
@@ -59,12 +65,15 @@ namespace Stuart_Hopwood_Photography_API.Data
                         dbKey.scope = token.scope;
                         dbKey.token_type = token.token_type;
                     }
+
                     _context.SaveChanges();
+                    _logger.LogDebug($"db changes saved.");
                     transaction.Commit();
                 }
                 catch (Exception ex)
                 {
                     transaction.Rollback();
+                    _logger.LogError($"{ex.Message}");
                     throw new ApplicationException(ex.Message, ex.InnerException);
                 }
             }
@@ -72,8 +81,13 @@ namespace Stuart_Hopwood_Photography_API.Data
 
         public void UpdateAccessToken(AccessToken accessToken)
         {
+            _logger.LogDebug($"Updating AuthToken with new AccessToken {accessToken}.");
             var dbKey = _context.OAuthToken.FirstOrDefault(k => k.UserKey == ClientInfo.UserName);
-            if (dbKey == null) return;
+            if (dbKey == null)
+            {
+                _logger.LogError($"AuthToken does not exist in DB");
+                return;
+            }
             using (var transaction = _context.Database.BeginTransaction())
             {
                 try
@@ -84,13 +98,15 @@ namespace Stuart_Hopwood_Photography_API.Data
                     dbKey.Issued = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffffffK");
                     dbKey.IssuedUtc = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffffffK");
                     dbKey.token_type = accessToken.Token_Type;
-
+                    _logger.LogDebug($"Updating AuthToken in db {dbKey}.");
                     _context.SaveChanges();
+                    _logger.LogDebug($"db changes saved");
                     transaction.Commit();
                 }
                 catch (Exception ex)
                 {
                     transaction.Rollback();
+                    _logger.LogError($"{ex.Message}");
                     throw new ApplicationException(ex.Message, ex.InnerException);
                 }
             }
@@ -110,13 +126,16 @@ namespace Stuart_Hopwood_Photography_API.Data
                     var dbKey = _context.OAuthToken.FirstOrDefault(k => k.UserKey == key);
                     if (dbKey == null) return;
 
+                    _logger.LogDebug($"Deleting AuthToken in db {dbKey}.");
                     _context.Remove((object)dbKey);
                     _context.SaveChanges();
+                    _logger.LogDebug($"db changes saved.");
                     transaction.Commit();
                 }
                 catch (Exception ex)
                 {
                     transaction.Rollback();
+                    _logger.LogError($"{ex.Message}");
                     throw new ApplicationException(ex.Message, ex.InnerException);
                 }
             }
@@ -138,6 +157,7 @@ namespace Stuart_Hopwood_Photography_API.Data
             }
 
             var token = _context.OAuthToken.FirstOrDefault(k => k.UserKey == key);
+            _logger.LogDebug($"Retrieved AuthToken from db {token}.");
             return token;
         }
 
@@ -150,16 +170,18 @@ namespace Stuart_Hopwood_Photography_API.Data
             {
                 try
                 {
+                    _logger.LogDebug($"Deleting all AuthToken's in db.");
                     _context.Database.ExecuteSqlCommand("TRUNCATE TABLE [OAuthToken]");
+                    _logger.LogDebug($"Deleted all AuthToken's in db.");
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError($"{ex.Message}");
                     transaction.Rollback();
                     throw new ApplicationException(ex.Message, ex.InnerException);
                 }
             }
         }
-
         #endregion
     }
 }

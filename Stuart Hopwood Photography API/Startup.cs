@@ -114,6 +114,7 @@ namespace Stuart_Hopwood_Photography_API
 
             app.UseAuthentication();
             app.UseHttpsRedirection();
+            app.UseMiddleware<StackifyMiddleware.RequestTracerMiddleware>();
             app.UseMvc();
         }
     }

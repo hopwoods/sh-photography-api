@@ -1,10 +1,7 @@
-﻿using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Extensions;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Stuart_Hopwood_Photography_API.Helpers;
+﻿using Microsoft.AspNetCore.Mvc;
 using Stuart_Hopwood_Photography_API.Services;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Stuart_Hopwood_Photography_API.Controllers
 {
@@ -13,26 +10,26 @@ namespace Stuart_Hopwood_Photography_API.Controllers
    public class OAuthController : ControllerBase
    {
       private readonly IOAuthService _oAuthService;
-      private readonly IPhotosApi _photosApi;
-      private IConfiguration Configuration { get; set; }
+      private readonly ILogger<OAuthController> _logger;
 
-      public OAuthController(IOAuthService oAuthService, IPhotosApi photosApi, IConfiguration configuration)
+      public OAuthController(IOAuthService oAuthService, ILogger<OAuthController> logger)
       {
          _oAuthService = oAuthService;
-         _photosApi = photosApi;
-         Configuration = configuration;
+         _logger = logger;
       }
 
 
       [HttpGet("GetAuthorization")]
       public IActionResult GetAuthorization(string returnUrl)
       {
+         _logger.LogInformation($"Get oAuth authorisation and tokens.");
          return _oAuthService.SendAuthRequest(returnUrl);
       }
 
       [HttpGet("callback")]
       public async Task<IActionResult> CallbackAsync(string state, string code)
       {
+         _logger.LogInformation($"Process oAuth authorisation response and generate tokens.");
          await _oAuthService.ExchangeAuthCodeForAuthToken(code);
          return new RedirectResult(state);
       }

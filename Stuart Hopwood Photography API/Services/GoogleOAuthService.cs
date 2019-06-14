@@ -8,21 +8,23 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Stuart_Hopwood_Photography_API.Services
 {
    public class GoogleIoAuthService : IOAuthService
    {
       private readonly ITokenDataStore _dataStore;
+      private readonly ILogger<GoogleIoAuthService> _logger;
 
-      private readonly string[] _scopes = { "https://www.googleapis.com/auth/photoslibrary.readonly" };      
-
+      private readonly string[] _scopes = { "https://www.googleapis.com/auth/photoslibrary.readonly" };  
       private readonly string RedirectUri = "https://localhost:44398/api/auth/callback";
       private readonly HttpClient _client = new HttpClient();
 
-      public GoogleIoAuthService(ITokenDataStore dataStore)
+      public GoogleIoAuthService(ITokenDataStore dataStore, ILogger<GoogleIoAuthService> logger)
       {
          _dataStore = dataStore;
+         _logger = logger;
       }
 
       /// <summary>
@@ -32,19 +34,36 @@ namespace Stuart_Hopwood_Photography_API.Services
       /// <returns></returns>
       public OAuthToken GetAuthToken(string userKey)
       {
+         _logger.LogDebug($"Get Auth Token from DB. UserKey = {userKey}");
+
          // Get stored token if it exists
          var storedAuthToken = _dataStore.GetToken(userKey);
 
-         if (storedAuthToken == null) return null;
+         _logger.LogDebug($"Auth Token retrieved from DB. Token = {storedAuthToken}");
+
+         if (storedAuthToken == null)
+         {
+            _logger.LogDebug($"Auth Token from DBis NULL, returning NULL");
+            return null;
+         }
 
          // If Expired, Refresh
+         _logger.LogDebug($"Check if Token is expired");
          var isTokenExpired = IsAccessTokenExpired(storedAuthToken);
 
-         if (!isTokenExpired) return storedAuthToken;
+         if (!isTokenExpired)
+         {
+            _logger.LogDebug($"Token has NOT expired (isTokenExpired = false), returning token {storedAuthToken}");
+            return storedAuthToken;
+         }
+
+         _logger.LogDebug($"Token has expired (isTokenExpired = true), refreshing token {storedAuthToken}");
 
          RefreshTokenAsync(storedAuthToken.refresh_token);
 
          // Get Updated version of the token
+         _logger.LogDebug($"Token has been updated, Returning token {storedAuthToken}");
+
          return _dataStore.GetToken(userKey);
       }
 
@@ -55,6 +74,7 @@ namespace Stuart_Hopwood_Photography_API.Services
       /// <returns></returns>
       private bool IsAccessTokenExpired(OAuthToken authToken)
       {
+         _logger.LogWarning($"Param AuthToken is null, returning true.");
          if (authToken == null) return true;
 
          var currentDateTime = DateTime.UtcNow;
@@ -63,6 +83,7 @@ namespace Stuart_Hopwood_Photography_API.Services
 
          var isExpired = tokenExpires <= currentDateTime;
 
+         _logger.LogDebug($"isExpired = {isExpired}), Token Expires: {tokenExpires}, returning {isExpired}");
          return isExpired;
       }
 
@@ -86,6 +107,7 @@ namespace Stuart_Hopwood_Photography_API.Services
          };
 
          var url = QueryHelpers.AddQueryString("https://accounts.google.com/o/oauth2/v2/auth", requestData);
+         _logger.LogDebug($"Redirecting user to oAuth consent screen {url}");
 
          return new RedirectResult(url);
       }
@@ -105,6 +127,8 @@ namespace Stuart_Hopwood_Photography_API.Services
             {"redirect_uri", RedirectUri}
          };
 
+         _logger.LogDebug($"Request Data for Auth Code -> Access Code exchange: {requestData}");
+
          var content = new FormUrlEncodedContent(requestData);
          var request = new HttpRequestMessage()
          {
@@ -117,6 +141,7 @@ namespace Stuart_Hopwood_Photography_API.Services
 
          using (var response = await _client.PostAsync(request.RequestUri, request.Content))
          {
+            _logger.LogDebug($"Response from oAuth Server = {response.StatusCode} : {response.ReasonPhrase}");
             if (response.StatusCode != HttpStatusCode.OK) throw new ApplicationException(response.ReasonPhrase);
 
             var responseJson = await response.Content.ReadAsStringAsync();
@@ -127,6 +152,9 @@ namespace Stuart_Hopwood_Photography_API.Services
             accessToken.IssuedUtc = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffffffK");
             accessToken.scope = _scopes[0];
 
+            _logger.LogDebug($"Access Token created {accessToken}");
+
+            _logger.LogDebug($"Storing New Access Token.");
             _dataStore.StoreToken(accessToken);
          }
          
@@ -148,6 +176,8 @@ namespace Stuart_Hopwood_Photography_API.Services
             {"grant_type", "refresh_token"},
          };
 
+         _logger.LogDebug($"Request Data for Refresh Code -> Access Code exchange: {requestData}");
+
          var content = new FormUrlEncodedContent(requestData);
          var request = new HttpRequestMessage()
          {
@@ -160,13 +190,17 @@ namespace Stuart_Hopwood_Photography_API.Services
 
          using (var response = await _client.PostAsync(request.RequestUri, request.Content))
          {
+            _logger.LogDebug($"Response from oAuth Server = {response.StatusCode} : {response.ReasonPhrase}");
+
             if (response.StatusCode == HttpStatusCode.Unauthorized) return;
 
             var responseJson = await response.Content.ReadAsStringAsync();
             accessToken = JsonConvert.DeserializeObject<AccessToken>(responseJson);
          }
 
-         // Update Stored AuthToken with new Access Token
+         _logger.LogDebug($"Access Token created {accessToken}");
+         _logger.LogDebug($"Updating Access Token.");
+
          _dataStore.UpdateAccessToken(accessToken);
       }
    }

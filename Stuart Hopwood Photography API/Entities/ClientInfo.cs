@@ -28,7 +28,7 @@ namespace Stuart_Hopwood_Photography_API.Entities
             var clientSecret = secrets["client_secret"].Value<string>();
 
             UserName = "stoo.hopwood@gmail.com";
-            RedirectUri = "https://localhost:44398/api/auth/callback";
+            RedirectUri = "https://stuarthopwoodphotographyapi20190612014652.azurewebsites.net/api/auth/callback";
             ProjectId = projectId;
             ClientId = clientId;
             ClientSecret = clientSecret;
