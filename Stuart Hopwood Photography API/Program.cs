@@ -32,6 +32,7 @@ namespace Stuart_Hopwood_Photography_API
 
         private static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .UseApplicationInsights()
                 .UseStartup<Startup>()
                 .UseNLog(); // NLog: setup NLog for Dependency injection
     }

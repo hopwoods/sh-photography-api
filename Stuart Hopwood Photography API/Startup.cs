@@ -99,6 +99,7 @@ namespace Stuart_Hopwood_Photography_API
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseMiddleware<StackifyMiddleware.RequestTracerMiddleware>();
             }
             else
             {
@@ -114,7 +115,6 @@ namespace Stuart_Hopwood_Photography_API
 
             app.UseAuthentication();
             app.UseHttpsRedirection();
-            app.UseMiddleware<StackifyMiddleware.RequestTracerMiddleware>();
             app.UseMvc();
         }
     }
