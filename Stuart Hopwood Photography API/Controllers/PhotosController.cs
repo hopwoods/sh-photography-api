@@ -47,7 +47,7 @@ namespace Stuart_Hopwood_Photography_API.Controllers
 
          if (authToken == null)
          {
-            _logger.LogDebug("AuthToken is null");
+            _logger.LogInformation("AuthToken is null");
             // Get new authorisation and token
             return RedirectToAction("GetAuthorization", "OAuth", new {returnUrl});
          }

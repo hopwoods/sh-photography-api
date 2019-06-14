@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Stuart_Hopwood_Photography_API.Data;
+using Stuart_Hopwood_Photography_API.Entities;
 using Stuart_Hopwood_Photography_API.Extensions;
 using Stuart_Hopwood_Photography_API.Helpers;
 using Stuart_Hopwood_Photography_API.Services;
@@ -91,6 +92,8 @@ namespace Stuart_Hopwood_Photography_API
             services.AddTransient<IOAuthService, GoogleIoAuthService>();
             services.AddTransient<IPhotosApi, GooglePhotosApi>();
             services.AddTransient<ITokenDataStore, DbTokenDataStore>();
+            services.AddTransient<IConfiguration>();
+            services.AddTransient<ClientInfo>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

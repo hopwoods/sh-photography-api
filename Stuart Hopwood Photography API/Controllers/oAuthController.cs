@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using Microsoft.AspNetCore.Mvc;
 using Stuart_Hopwood_Photography_API.Services;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace Stuart_Hopwood_Photography_API.Controllers
 {
@@ -30,7 +32,18 @@ namespace Stuart_Hopwood_Photography_API.Controllers
       public async Task<IActionResult> CallbackAsync(string state, string code)
       {
          _logger.LogInformation($"Process oAuth authorisation response and generate tokens.");
-         await _oAuthService.ExchangeAuthCodeForAuthToken(code);
+         try
+         {
+            _logger.LogInformation($"Exchanging token...code = {code} state = {state}");
+            await _oAuthService.ExchangeAuthCodeForAuthToken(code);
+         }
+         catch (Exception ex)
+         {
+            _logger.LogError($"{ex.Message}, {ex.StackTrace}");
+            var result = JsonConvert.SerializeObject(ex);
+            return Content(result);
+         }
+         
          return new RedirectResult(state);
       }
    }

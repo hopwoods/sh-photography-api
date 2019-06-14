@@ -12,10 +12,12 @@ namespace Stuart_Hopwood_Photography_API.Helpers
    {
       private readonly HttpClient _client = new HttpClient();
       private readonly ILogger<GooglePhotosApi> _logger;
+      private readonly ClientInfo _clientInfo;
 
-      public GooglePhotosApi(ILogger<GooglePhotosApi> logger)
+      public GooglePhotosApi(ILogger<GooglePhotosApi> logger, ClientInfo clientInfo)
       {
          _logger = logger;
+         _clientInfo = clientInfo;
       }
 
       public async Task<GalleryPhotos> GetAlbumPhotos(string albumId, string tokenType, string accessToken)
@@ -28,7 +30,7 @@ namespace Stuart_Hopwood_Photography_API.Helpers
             {"pageSize", "100"} // Maximum page size
          };
 
-         _logger.LogDebug($"Request Data for API Request {requestData}.");
+         _logger.LogInformation($"Request Data for API Request {requestData}.");
 
          var content = new FormUrlEncodedContent(requestData);
          var request = new HttpRequestMessage()
@@ -38,28 +40,28 @@ namespace Stuart_Hopwood_Photography_API.Helpers
          };
 
          request.Headers.Add("ContentType", "application/json");
-         request.Headers.Add("client_id", ClientInfo.ClientId);
-         request.Headers.Add("client_secret", ClientInfo.ClientSecret);
+         request.Headers.Add("client_id", _clientInfo.ClientId);
+         request.Headers.Add("client_secret", _clientInfo.ClientSecret);
          request.Headers.Add("Authorization", $"{tokenType} {accessToken}");
          request.Content = content;
 
          using (var response = await _client.SendAsync(request))
          {
-            _logger.LogDebug($"Response from API {response.StatusCode} : {response.ReasonPhrase}.");
+            _logger.LogInformation($"Response from API {response.StatusCode} : {response.ReasonPhrase}.");
             var responseJson = await response.Content.ReadAsStringAsync();
             var photosObject = JsonConvert.DeserializeObject<GooglePhotosResponse>(responseJson);
 
-            _logger.LogDebug($"JSON object from API response from db {photosObject}.");
+            _logger.LogInformation($"JSON object from API response from db {photosObject}.");
 
             if (photosObject == null) return galleryPhotos;
 
             if (photosObject.MediaItems == null || photosObject.MediaItems.Count <= 0)
             {
-               _logger.LogDebug($"No Photos returned by API.");
+               _logger.LogInformation($"No Photos returned by API.");
                return galleryPhotos;
             }
 
-            _logger.LogDebug($"Looping through photos and extracting required data.");
+            _logger.LogInformation($"Looping through photos and extracting required data.");
             foreach (var item in photosObject.MediaItems)
             {
                var width = Convert.ToInt32(item.MediaMetadata.Width);
@@ -75,7 +77,7 @@ namespace Stuart_Hopwood_Photography_API.Helpers
                );
             }
 
-            _logger.LogDebug($"Photos retrieved {galleryPhotos}.");
+            _logger.LogInformation($"Photos retrieved {galleryPhotos}.");
          }
          return galleryPhotos;
       }
