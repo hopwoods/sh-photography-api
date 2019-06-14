@@ -11,9 +11,6 @@ namespace Stuart_Hopwood_Photography_API.Entities
         public string UserKey { get; set; }
 
         [StringLength(2000)]
-        public string Token { get; set; }
-
-        [StringLength(2000)]
         public string access_token { get; set; }
 
         [StringLength(255)]
@@ -26,8 +23,6 @@ namespace Stuart_Hopwood_Photography_API.Entities
 
         [StringLength(1000)]
         public string scope { get; set; }
-
-        public string id_token { get; set; }
 
         public string Issued { get; set; }
 

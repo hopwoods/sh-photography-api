@@ -1,23 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
 using Stuart_Hopwood_Photography_API.Data;
 using Stuart_Hopwood_Photography_API.Entities;
 using Stuart_Hopwood_Photography_API.Helpers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Stuart_Hopwood_Photography_API.Services
 {
-    public interface IUserService
-    {
-        User Authenticate(string username, string password);
-        IEnumerable<User> GetAll();
-        User GetById(int id);
-        User Create(User user, string password);
-        void Update(User user, string password = null);
-        void Delete(int id);
-    }
-
     public class UserService : IUserService
     {
         private readonly ApplicationContext _context;
@@ -140,7 +129,7 @@ namespace Stuart_Hopwood_Photography_API.Services
             using (var hmac = new System.Security.Cryptography.HMACSHA512(storedSalt))
             {
                 var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-                for (int i = 0; i < computedHash.Length; i++)
+                for (var i = 0; i < computedHash.Length; i++)
                 {
                     if (computedHash[i] != storedHash[i]) return false;
                 }

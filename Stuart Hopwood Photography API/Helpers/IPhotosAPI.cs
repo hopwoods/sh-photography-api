@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Stuart_Hopwood_Photography_API.Entities;
 using System.Threading.Tasks;
-using Stuart_Hopwood_Photography_API.Entities;
 
 namespace Stuart_Hopwood_Photography_API.Helpers
 {

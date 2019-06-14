@@ -87,9 +87,10 @@ namespace Stuart_Hopwood_Photography_API
                 });
 
             // configure DI for application services
-            services.AddScoped<IUserService, UserService>();
-            services.AddScoped<IOAuthHelper, GoogleOAuthHelper>();
-            services.AddScoped<IPhotosApi, GooglePhotosApi>();
+            services.AddTransient<IUserService, UserService>();
+            services.AddTransient<IOAuthService, GoogleIoAuthService>();
+            services.AddTransient<IPhotosApi, GooglePhotosApi>();
+            services.AddTransient<ITokenDataStore, DbTokenDataStore>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,6 +1,6 @@
 ﻿namespace Stuart_Hopwood_Photography_API.Entities
 {
-   public class GoogleAccessToken
+   public class AccessToken
    {
       public string Access_Token { get; set; }
 

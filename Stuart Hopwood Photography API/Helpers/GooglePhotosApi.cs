@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Stuart_Hopwood_Photography_API.Entities;
 using System;
 using System.Collections.Generic;
@@ -11,12 +10,6 @@ namespace Stuart_Hopwood_Photography_API.Helpers
    public class GooglePhotosApi : IPhotosApi
    {
       private readonly HttpClient _client = new HttpClient();
-      private IConfiguration Configuration { get; }
-
-      public GooglePhotosApi(IConfiguration configuration)
-      {
-         Configuration = configuration;
-      }
 
       public async Task<GalleryPhotos> GetAlbumPhotos(string albumId, string tokenType, string accessToken)
       {
@@ -35,8 +28,8 @@ namespace Stuart_Hopwood_Photography_API.Helpers
          };
 
          request.Headers.Add("ContentType", "application/json");
-         request.Headers.Add("client_id", Configuration["GoogleAPI:client_id"]);
-         request.Headers.Add("client_secret", Configuration["GoogleAPI:client_secret"]);
+         request.Headers.Add("client_id", ClientInfo.ClientId);
+         request.Headers.Add("client_secret", ClientInfo.ClientSecret);
          request.Headers.Add("Authorization", $"{tokenType} {accessToken}");
          request.Content = content;
 
@@ -54,18 +47,17 @@ namespace Stuart_Hopwood_Photography_API.Helpers
             {
                var width = Convert.ToInt32(item.MediaMetadata.Width);
                var height = Convert.ToInt32(item.MediaMetadata.Height);
-               var scale = 3;
+               const int scale = 3;
 
                galleryPhotos.Photos.Add(new Photo()
                {
-                  Src = $"{item.BaseUrl}=w{height/scale}-h{height/scale}",
+                  Src = $"{item.BaseUrl}=w{height / scale}-h{height / scale}",
                   Width = width,
                   Height = height
                }
                );
             }
          }
-
          return galleryPhotos;
       }
    }
