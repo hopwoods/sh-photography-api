@@ -92,7 +92,6 @@ namespace Stuart_Hopwood_Photography_API
             services.AddTransient<IOAuthService, GoogleIoAuthService>();
             services.AddTransient<IPhotosApi, GooglePhotosApi>();
             services.AddTransient<ITokenDataStore, DbTokenDataStore>();
-            services.AddTransient<IConfiguration>();
             services.AddTransient<ClientInfo>();
         }
 
@@ -102,7 +101,6 @@ namespace Stuart_Hopwood_Photography_API
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseMiddleware<StackifyMiddleware.RequestTracerMiddleware>();
             }
             else
             {
