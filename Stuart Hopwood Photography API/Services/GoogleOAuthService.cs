@@ -18,8 +18,7 @@ namespace Stuart_Hopwood_Photography_API.Services
       private readonly ILogger<GoogleIoAuthService> _logger;
       private readonly ClientInfo _clientInfo;
 
-      private readonly string[] _scopes = { "https://www.googleapis.com/auth/photoslibrary.readonly" };  
-      private readonly string RedirectUri = "https://localhost:44398/api/auth/callback";
+      private readonly string[] _scopes = { "https://www.googleapis.com/auth/photoslibrary.readonly" };
       private readonly HttpClient _client = new HttpClient();
 
       public GoogleIoAuthService(ITokenDataStore dataStore, ILogger<GoogleIoAuthService> logger, ClientInfo clientInfo)
@@ -34,7 +33,7 @@ namespace Stuart_Hopwood_Photography_API.Services
       /// </summary>
       /// <param name="userKey"></param>
       /// <returns></returns>
-      public OAuthToken GetAuthToken(string userKey)
+      public async Task<OAuthToken> GetAuthTokenAsync(string userKey)
       {
          _logger.LogInformation($"Get Auth Token from DB. UserKey = {userKey}");
 
@@ -61,7 +60,7 @@ namespace Stuart_Hopwood_Photography_API.Services
 
          _logger.LogInformation($"Token has expired (isTokenExpired = true), refreshing token {storedAuthToken}");
 
-         RefreshTokenAsync(storedAuthToken.refresh_token);
+         await RefreshTokenAsync(storedAuthToken.refresh_token);
 
          // Get Updated version of the token
          _logger.LogInformation($"Token has been updated, Returning token {storedAuthToken}");
@@ -97,6 +96,7 @@ namespace Stuart_Hopwood_Photography_API.Services
       /// <returns></returns>
       public RedirectResult SendAuthRequest(string returnUrl = "")
       {
+         // Todo - Use Flurl instead of Http Cient
          var requestData = new Dictionary<string, string>
          {
             {"client_id", _clientInfo.ClientId},
@@ -109,6 +109,8 @@ namespace Stuart_Hopwood_Photography_API.Services
          };
 
          var url = QueryHelpers.AddQueryString("https://accounts.google.com/o/oauth2/v2/auth", requestData);
+        
+         
          _logger.LogInformation($"Redirecting user to oAuth consent screen {url}");
 
          return new RedirectResult(url);
@@ -120,13 +122,15 @@ namespace Stuart_Hopwood_Photography_API.Services
       /// <param name="code"></param>
       public async Task ExchangeAuthCodeForAuthToken(string code)
       {
+         // Todo - Use Flurl instead of Http Cient
          var requestData = new Dictionary<string, string>
          {
+            {"code", code},
+            {"redirect_uri", _clientInfo.RedirectUri},
             {"client_id", _clientInfo.ClientId},
             {"client_secret", _clientInfo.ClientSecret},
-            {"code", code},
-            {"grant_type", "authorization_code"},
-            {"redirect_uri", RedirectUri}
+            {"scope", _scopes[0]},
+            {"grant_type", "authorization_code"}
          };
 
          _logger.LogInformation($"Request Data for Auth Code -> Access Code exchange: {requestData}");
@@ -135,7 +139,6 @@ namespace Stuart_Hopwood_Photography_API.Services
          var request = new HttpRequestMessage()
          {
             RequestUri = new Uri("https://www.googleapis.com/oauth2/v4/token"),
-            Method = HttpMethod.Post
          };
 
          request.Headers.Add("ContentType", "application/x-www-form-urlencoded");
@@ -144,7 +147,7 @@ namespace Stuart_Hopwood_Photography_API.Services
          using (var response = await _client.PostAsync(request.RequestUri, request.Content))
          {
             _logger.LogInformation($"Response from oAuth Server = {response.StatusCode} : {response.ReasonPhrase}");
-            if (response.StatusCode != HttpStatusCode.OK) throw new ApplicationException(response.ReasonPhrase);
+            if (!response.IsSuccessStatusCode) throw new ApplicationException($"{response.ReasonPhrase} - {response.RequestMessage}");
 
             var responseJson = await response.Content.ReadAsStringAsync();
             var accessToken = JsonConvert.DeserializeObject<OAuthToken>(responseJson);
@@ -167,9 +170,11 @@ namespace Stuart_Hopwood_Photography_API.Services
       /// </summary>
       /// <param name="refreshToken"></param>
       /// <returns></returns>
-      private async void RefreshTokenAsync(string refreshToken)
+      private async Task RefreshTokenAsync(string refreshToken)
       {
          AccessToken accessToken;
+
+         // Todo - Use Flurl instead of Http Cient
          var requestData = new Dictionary<string, string>
          {
             {"client_id", _clientInfo.ClientId},

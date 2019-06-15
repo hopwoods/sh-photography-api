@@ -7,6 +7,7 @@ using Stuart_Hopwood_Photography_API.Services;
 using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Stuart_Hopwood_Photography_API.Entities;
 
 namespace Stuart_Hopwood_Photography_API.Controllers
 {
@@ -17,14 +18,16 @@ namespace Stuart_Hopwood_Photography_API.Controllers
       private readonly IOAuthService _oAuthService;
       private readonly IPhotosApi _photosApi;
       private readonly ILogger<PhotosController> _logger;
+      private readonly ClientInfo _clientInfo;
       private IConfiguration Configuration { get; set; }
 
-      public PhotosController(IOAuthService oAuthService, IPhotosApi photosApi, IConfiguration configuration, ILogger<PhotosController> logger)
+      public PhotosController(IOAuthService oAuthService, IPhotosApi photosApi, IConfiguration configuration, ILogger<PhotosController> logger, ClientInfo clientInfo)
       {
          _oAuthService = oAuthService;
          _photosApi = photosApi;
          Configuration = configuration;
          _logger = logger;
+         _clientInfo = clientInfo;
       }
 
       [AllowAnonymous]
@@ -32,6 +35,11 @@ namespace Stuart_Hopwood_Photography_API.Controllers
       public async Task<IActionResult> GetAlbumPhotosAsync(string albumId)
       {
          _logger.LogInformation("Getting Album Photos");
+
+         _logger.LogInformation($"Username = {_clientInfo.UserName}");
+         _logger.LogInformation($"Client ID = {_clientInfo.ClientId}");
+         _logger.LogInformation($"Client Secret = {_clientInfo.ClientSecret}");
+         _logger.LogInformation($"Redirect URL = {_clientInfo.RedirectUri}");
 
          if (albumId == null)
          {
@@ -43,7 +51,7 @@ namespace Stuart_Hopwood_Photography_API.Controllers
 
          _logger.LogInformation("Get AuthToken for us in controller");
 
-         var authToken = _oAuthService.GetAuthToken(Configuration["GoogleApi:username"]);
+         var authToken = await _oAuthService.GetAuthTokenAsync(Configuration["GoogleApi:username"]);
 
          if (authToken == null)
          {

@@ -23,7 +23,7 @@ namespace Stuart_Hopwood_Photography_API.Data
       void DeleteToken(string key);
 
       /// <summary>
-      /// Asynchronously returns the stored value for the given key or <c>null</c> if not found.
+      /// Returns the stored value for the given key or <c>null</c> if not found.
       /// </summary>
       /// <param name="key">The key to retrieve its value.</param>
       /// <returns>
