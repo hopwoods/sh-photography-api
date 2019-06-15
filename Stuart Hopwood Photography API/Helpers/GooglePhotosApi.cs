@@ -24,6 +24,8 @@ namespace Stuart_Hopwood_Photography_API.Helpers
       {
          _logger.LogInformation($"Get Photos JSON from Goolge album id {albumId}.");
          var galleryPhotos = new GalleryPhotos { Photos = new List<Photo>() };
+
+         // Todo - Use Flurl instead of Http Cient
          var requestData = new Dictionary<string, string>
          {
             {"albumId", albumId},
