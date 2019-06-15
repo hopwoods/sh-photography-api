@@ -144,9 +144,8 @@ namespace Stuart_Hopwood_Photography_API.Data
         }
 
         /// <summary>
-        /// Asynchronously returns the stored value for the given key or <c>null</c> if not found.
+        /// Returns the stored value for the given key or <c>null</c> if not found.
         /// </summary>
-        /// <typeparam name="T">The type to retrieve from the data store.</typeparam>
         /// <param name="key">The key to retrieve its value.</param>
         /// <returns>
         /// The stored object.

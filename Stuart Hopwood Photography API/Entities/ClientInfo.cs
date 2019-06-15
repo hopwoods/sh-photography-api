@@ -11,12 +11,12 @@ namespace Stuart_Hopwood_Photography_API.Entities
     /// </summary>
     public class ClientInfo
     {
-        public string UserName { get; set; }
-        public string ClientId { get; set; }
-        public string ClientSecret { get; set; }
-        public string RedirectUri { get; set; }
+        public string UserName { get; }
+        public string ClientId { get; }
+        public string ClientSecret { get; }
+        public string RedirectUri { get;}
 
-        private IConfiguration Configuration { get; set; }
+        private IConfiguration Configuration { get; }
 
 
         public ClientInfo(IConfiguration configuration)

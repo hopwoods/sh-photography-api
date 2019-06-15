@@ -6,7 +6,7 @@ namespace Stuart_Hopwood_Photography_API.Services
 {
    public interface IOAuthService
    {
-      OAuthToken GetAuthToken(string userKey);
+      Task<OAuthToken> GetAuthTokenAsync(string userKey);
 
       RedirectResult SendAuthRequest(string returnUrl = null);
 
