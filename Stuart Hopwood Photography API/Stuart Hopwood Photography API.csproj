@@ -6,13 +6,35 @@
     <RootNamespace>Stuart_Hopwood_Photography_API</RootNamespace>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <UserSecretsId>bd6321f0-054e-42ce-8596-345f50a37ae9</UserSecretsId>
+    <ApplicationInsightsResourceId>/subscriptions/44490c23-968e-4c06-a8c4-9d9e0838f95f/resourcegroups/Stuart-Hopwood-Photography/providers/microsoft.insights/components/Stuart Hopwood Photography API</ApplicationInsightsResourceId>
+    <ApplicationInsightsAnnotationResourceId>/subscriptions/44490c23-968e-4c06-a8c4-9d9e0838f95f/resourcegroups/Stuart-Hopwood-Photography/providers/microsoft.insights/components/Stuart Hopwood Photography API</ApplicationInsightsAnnotationResourceId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Apis.Auth.AspNetCore" Version="1.40.2" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.7.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="AutoMapper" Version="8.1.0" />
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="6.0.0" />
+    <PackageReference Include="AutoMapper" Version="8.1.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="6.1.1" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.7.2" />
+    <PackageReference Include="NLog" Version="4.6.5" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="4.8.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="JetBrains.Annotations">
+      <HintPath>..\..\..\..\AppData\Local\JetBrains\Installations\ReSharperPlatformVs16_e44bce24\Annotations\net20\JetBrains.Annotations.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="nlog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services" />
   </ItemGroup>
 
 </Project>
