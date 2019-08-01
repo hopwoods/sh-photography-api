@@ -92,6 +92,7 @@ namespace Stuart_Hopwood_Photography_API
             services.AddTransient<IOAuthService, GoogleIoAuthService>();
             services.AddTransient<IPhotosApi, GooglePhotosApi>();
             services.AddTransient<ITokenDataStore, DbTokenDataStore>();
+            services.AddTransient<IPhotoUtilities, PhotoUtilities>();
             services.AddTransient<ClientInfo>();
         }
 

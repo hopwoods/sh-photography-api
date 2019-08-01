@@ -32,7 +32,7 @@ namespace Stuart_Hopwood_Photography_API.Controllers
 
       [AllowAnonymous]
       [HttpGet("GetAlbumPhotos")]
-      public async Task<IActionResult> GetAlbumPhotosAsync(string albumId)
+      public async Task<IActionResult> GetAlbumPhotosAsync(string albumId, int viewportWidth, int viewportHeight)
       {
          _logger.LogInformation("Getting Album Photos");
 
@@ -66,7 +66,7 @@ namespace Stuart_Hopwood_Photography_API.Controllers
          try
          {
             _logger.LogInformation("Retrieve Photos JSON from Google API");
-            var galleryPhotos = await _photosApi.GetAlbumPhotos(albumId, authToken.token_type, authToken.access_token);
+            var galleryPhotos = await _photosApi.GetAlbumPhotos(albumId, viewportWidth, viewportHeight, authToken.token_type, authToken.access_token);
             _logger.LogInformation("Photos JSON Retrieved");
             return new JsonResult(galleryPhotos);
          }

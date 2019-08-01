@@ -11,22 +11,27 @@ namespace Stuart_Hopwood_Photography_API.Helpers
    public class GooglePhotosApi : IPhotosApi
    {
       private readonly HttpClient _client = new HttpClient();
+      private readonly IPhotoUtilities _photoUtilities;
       private readonly ILogger<GooglePhotosApi> _logger;
       private readonly ClientInfo _clientInfo;
 
-      public GooglePhotosApi(ILogger<GooglePhotosApi> logger, ClientInfo clientInfo)
+      public GooglePhotosApi(ILogger<GooglePhotosApi> logger, ClientInfo clientInfo, IPhotoUtilities photoUtilities)
       {
          _logger = logger;
          _clientInfo = clientInfo;
+         _photoUtilities = photoUtilities;
       }
 
-      public async Task<GalleryPhotos> GetAlbumPhotos(string albumId, string tokenType, string accessToken)
+      public async Task<GalleryPhotos> GetAlbumPhotos(string albumId, int viewportWidth, int viewportHeight, string tokenType, string accessToken)
       {
          _logger.LogInformation($"Get Photos JSON from Goolge album id {albumId}.");
-         var galleryPhotos = new GalleryPhotos { Photos = new List<Photo>() };
+            var galleryPhotos = new GalleryPhotos
+            {
+                Photos = new List<Photo>()
+            };
 
-         // Todo - Use Flurl instead of Http Cient
-         var requestData = new Dictionary<string, string>
+            // Todo - Use Flurl instead of Http Cient
+            var requestData = new Dictionary<string, string>
          {
             {"albumId", albumId},
             {"pageSize", "100"} // Maximum page size
@@ -66,15 +71,13 @@ namespace Stuart_Hopwood_Photography_API.Helpers
             _logger.LogInformation($"Looping through photos and extracting required data.");
             foreach (var item in photosObject.MediaItems)
             {
-               var width = Convert.ToInt32(item.MediaMetadata.Width);
-               var height = Convert.ToInt32(item.MediaMetadata.Height);
-               const int scale = 3;
+               var imageDimensions = _photoUtilities.CalculateImageDimensions(item, viewportWidth, viewportHeight);
 
                galleryPhotos.Photos.Add(new Photo()
                {
-                  Src = $"{item.BaseUrl}=w{height / scale}-h{height / scale}",
-                  Width = width,
-                  Height = height
+                  Src = $"{item.BaseUrl}=w{imageDimensions.Width}-h{imageDimensions.Height}",
+                  Width = imageDimensions.Width,
+                  Height = imageDimensions.Height
                }
                );
             }

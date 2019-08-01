@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Stuart_Hopwood_Photography_API.Data
 {
+    // Todo - Implement Repositry pattern and Unit of Work pattern.
     public class DbTokenDataStore : ITokenDataStore
     {
         private readonly ApplicationContext _context;
