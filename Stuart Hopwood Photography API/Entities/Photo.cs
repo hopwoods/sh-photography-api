@@ -6,6 +6,8 @@
 
         public string[] SrcSet { get; set; }
 
+        public string[] Sizes { get; set; }
+
         public int Width { get; set; }
 
         public int Height { get; set; }
