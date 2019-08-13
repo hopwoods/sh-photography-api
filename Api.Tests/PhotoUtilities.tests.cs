@@ -17,6 +17,7 @@ namespace Api.Tests
 
       [TestCase(2000, 2000, 1000, 1000, 1000, 1000)]
       [TestCase(250, 250, 300, 300, 300, 300)]
+      [TestCase(2000, 2000, 0, 0, 2000, 2000)]
       public void CalculateImageDimensions_Returns_CorrectDimensions(int photoWidth, int photoHeight, int maxWidth, int maxHeight, int expectedWidth, int expectedHeight)
       {
          // Arrange

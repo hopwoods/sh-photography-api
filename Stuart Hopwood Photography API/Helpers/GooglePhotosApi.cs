@@ -14,6 +14,7 @@ namespace Stuart_Hopwood_Photography_API.Helpers
       private readonly IPhotoUtilities _photoUtilities;
       private readonly ILogger<GooglePhotosApi> _logger;
       private readonly ClientInfo _clientInfo;
+      private IDictionary<string,ImageDimensions> ScreenResolutions { get; set; }
 
       public GooglePhotosApi(ILogger<GooglePhotosApi> logger, ClientInfo clientInfo, IPhotoUtilities photoUtilities)
       {
@@ -24,6 +25,10 @@ namespace Stuart_Hopwood_Photography_API.Helpers
 
       public async Task<GalleryPhotos> GetAlbumPhotos(string albumId, int viewportWidth, int viewportHeight, string tokenType, string accessToken)
       {
+         if (albumId == null) throw new ArgumentNullException(nameof(albumId));
+         if (viewportWidth <= 0) throw new ArgumentOutOfRangeException(nameof(viewportWidth));
+         if (viewportHeight <= 0) throw new ArgumentOutOfRangeException(nameof(viewportHeight));
+
          _logger.LogInformation($"Get Photos JSON from Goolge album id {albumId}.");
             var galleryPhotos = new GalleryPhotos
             {
@@ -68,16 +73,44 @@ namespace Stuart_Hopwood_Photography_API.Helpers
                return galleryPhotos;
             }
 
+            ScreenResolutions = new Dictionary<string, ImageDimensions>
+            {
+               {"1920x1080", new ImageDimensions {Width = 1920, Height = 1080}},
+               {"1680x1050", new ImageDimensions {Width = 1680, Height = 1050}},
+               {"1600x900", new ImageDimensions {Width = 1600, Height = 900}},
+               {"1440x900", new ImageDimensions {Width = 1400, Height = 900}},
+               {"1366x768", new ImageDimensions {Width = 1366, Height = 768}},
+               {"1360x768", new ImageDimensions {Width = 1360, Height = 768}},
+               {"1280x800", new ImageDimensions {Width = 1280, Height = 800}},
+               {"1024x768", new ImageDimensions {Width = 1024, Height = 768}},
+               {"768x1024", new ImageDimensions {Width = 768, Height = 1024}},
+               {"720x1280", new ImageDimensions {Width = 720, Height = 1280}},
+               {"480x800", new ImageDimensions {Width = 480, Height = 800}},
+               {"360x640", new ImageDimensions {Width = 360, Height = 640}},
+               {"320x568", new ImageDimensions {Width = 320, Height = 568}}
+            };
+
             _logger.LogInformation($"Looping through photos and extracting required data.");
             foreach (var item in photosObject.MediaItems)
             {
+               var srcSet = new List<string>();
                var imageDimensions = _photoUtilities.CalculateImageDimensions(item, viewportWidth, viewportHeight);
+
+               foreach (var (key, value) in ScreenResolutions)
+               {
+                  var srcSetDimensions = _photoUtilities.CalculateImageDimensions(item, value.Width, value.Height);
+                  srcSet.Add($"{item.BaseUrl}=w{srcSetDimensions.Width}-h{srcSetDimensions.Height} {value.Width}w");
+               }
+               
+
 
                galleryPhotos.Photos.Add(new Photo()
                {
                   Src = $"{item.BaseUrl}=w{imageDimensions.Width}-h{imageDimensions.Height}",
+                  SrcSet = srcSet.ToArray(),
                   Width = imageDimensions.Width,
-                  Height = imageDimensions.Height
+                  Height = imageDimensions.Height,
+                  Title = item.Filename
                }
                );
             }
