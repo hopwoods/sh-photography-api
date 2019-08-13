@@ -7,6 +7,9 @@ namespace Stuart_Hopwood_Photography_API.Helpers
    {
       public ImageDimensions CalculateImageDimensions(GooglePhotosMediaItem image, int maxWidth, int maxHeight)
       {
+         if (maxWidth <= 0) maxWidth = 1024;
+         if (maxHeight <= 0) maxHeight = 768;
+
          var imageWidth = Convert.ToInt32(image.MediaMetadata.Width);
          var imageHeight = Convert.ToInt32(image.MediaMetadata.Height);
 

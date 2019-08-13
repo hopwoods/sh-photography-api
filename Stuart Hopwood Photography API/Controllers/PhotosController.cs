@@ -46,6 +46,19 @@ namespace Stuart_Hopwood_Photography_API.Controllers
             _logger.LogError("Parameter AlbumID cannot be null");
             return BadRequest(new { message = "You must provide an album id." });
          }
+
+         if (viewportWidth <= 0)
+         {
+            _logger.LogError("Parameter viewportWidth cannot be <= 0");
+            return BadRequest(new {message = "You must provide an viewportWidth greater than 0."});
+         }
+
+         if (viewportHeight <= 0)
+         {
+            _logger.LogError("Parameter viewportHeight cannot be <= 0");
+            return BadRequest(new {message = "You must provide an viewportHeight greater than 0."});
+         }
+
          // Get Auth Token
          var returnUrl = HttpContext.Request.GetDisplayUrl();
 
